@@ -24,13 +24,13 @@ class TabularInput extends \yii\widgets\ListView
 
     /**
      *
-     * @var string 
+     * @var string
      */
     public $modelClass;
 
     /**
      *
-     * @var array 
+     * @var array
      */
     public $clientOptions = [];
     public $layout = "{items}";
