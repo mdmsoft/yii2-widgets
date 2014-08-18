@@ -39,13 +39,14 @@ class DropdownLink extends \yii\widgets\InputWidget
         $id = $this->options['id'];
         $params = $params = $this->params !== null ? $this->params : Yii::$app->getRequest()->getQueryParams();
         unset($params[$this->paramName]);
-        $links = array();
+        $links = $this->links;
         $params[0] = $this->route;
         foreach ($this->items as $key => $value) {
-            $params[$this->paramName] = $key;
-            $links[$key] = Url::to($params);
+            if (!isset($links[$key])) {
+                $params[$this->paramName] = $key;
+                $links[$key] = Url::to($params);
+            }
         }
-        $links = array_merge($links, $this->links);
 
         $options = Json::encode(['links' => $links]);
         $view = $this->getView();
