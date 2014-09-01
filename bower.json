@@ -1,0 +1,26 @@
+{
+    "name": "mdm-widgets",
+    "version": "2.0.0",
+    "homepage": "http://www.yiiframework.com/",
+    "authors": [
+        "Misbahul D Munir <misbahuldmunir@gmail.com>"
+    ],
+    "description": "The debugger extension for the Yii framework",
+    "keywords": [
+        "yii2",
+        "tabular",
+        "input"
+    ],
+    "license": "BSD-3-Clause",
+    "main": [
+        "assets/mdm.tabularInput.js",
+        "assets/mdm.dropdownLink.js"
+    ],
+    "ignore": [
+        "/*",
+        "!/assets"
+    ],
+    "dependencies": {
+        "yii2": "master"
+    }
+}
