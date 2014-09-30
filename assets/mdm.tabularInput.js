@@ -25,7 +25,7 @@
 
     var listData = {
     };
-
+    
     var methods = {
         init: function(options) {
             return this.each(function() {

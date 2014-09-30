@@ -82,9 +82,6 @@ class TabularInput extends Widget
 
     public function init()
     {
-        if ($this->modelClass === null) {
-            throw new InvalidConfigException('The "modelClass" property must be set.');
-        }
         if (!isset($this->options['id'])) {
             $this->options['id'] = $this->getId();
         }
@@ -160,7 +157,7 @@ class TabularInput extends Widget
     {
         $result = array_merge($this->clientOptions, [
             'counter' => count($this->allModels),
-            'template' => $this->renderItem(new $this->modelClass, '_key_', '_index_'),
+            'template' => $this->renderItem($this->modelClass ? new $this->modelClass : null, '_key_', '_index_'),
             'itemTag' => ArrayHelper::getValue($this->itemOptions, 'tag', 'div'),
         ]);
 
