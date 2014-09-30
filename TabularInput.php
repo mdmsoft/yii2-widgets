@@ -2,12 +2,11 @@
 
 namespace mdm\widgets;
 
-use yii\base\InvalidConfigException;
+use Yii;
 use yii\helpers\Json;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\base\Widget;
-use Yii;
 
 /**
  * Description of TabularInput
