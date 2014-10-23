@@ -92,10 +92,10 @@
             var $e = $(this);
             var settings = listData[$e.prop('id')].settings;
             var $row = $(settings.template.replace(/_key_/g, settings.counter++));
+            $e.append($row);
             if (settings.afterAddRow !== undefined) {
                 settings.afterAddRow.call(this, $row);
             }
-            $e.append($row);
             $e.mdmTabularInput('rearrage');
             return $row;
         },

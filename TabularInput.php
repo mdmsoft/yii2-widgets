@@ -79,6 +79,9 @@ class TabularInput extends Widget
      */
     public $clientOptions = [];
 
+    /**
+     * @inheritdoc
+     */
     public function init()
     {
         if (!isset($this->options['id'])) {
@@ -86,6 +89,9 @@ class TabularInput extends Widget
         }
     }
 
+    /**
+     * @inheritdoc
+     */
     public function run()
     {
         $this->registerClientScript();
@@ -147,8 +153,8 @@ class TabularInput extends Widget
         $id = $this->options['id'];
         $options = Json::encode($this->getClientOptions());
         $view = $this->getView();
-        $publish = $view->assetManager->publish('@mdm/widgets/assets');
-        $view->registerJsFile($publish[1] . '/mdm.tabularInput.js', ['yii\web\JqueryAsset']);
+        list(,$publish) = $view->assetManager->publish('@mdm/widgets/assets');
+        $view->registerJsFile($publish . '/mdm.tabularInput.js', ['depends'=>['yii\web\JqueryAsset']]);
         $view->registerJs("jQuery('#$id').mdmTabularInput($options);");
     }
 

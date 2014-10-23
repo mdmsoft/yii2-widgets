@@ -50,7 +50,7 @@ class DropdownLink extends \yii\widgets\InputWidget
 
         $options = Json::encode(['links' => $links]);
         $view = $this->getView();
-        list($basePath, $baseUrl) = $view->assetManager->publish('@mdm/widgets/assets');
+        list(, $baseUrl) = $view->assetManager->publish('@mdm/widgets/assets');
         $view->registerJsFile($baseUrl . '/mdm.dropdownLink.js', ['yii\web\JqueryAsset']);
         $view->registerJs("jQuery('#$id').mdmDropdownLink($options);");
     }
