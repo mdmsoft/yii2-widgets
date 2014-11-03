@@ -1,11 +1,11 @@
 {
     "name": "mdm-widgets",
-    "version": "2.0.0",
+    "version": "1.0.0",
     "homepage": "http://www.yiiframework.com/",
     "authors": [
         "Misbahul D Munir <misbahuldmunir@gmail.com>"
     ],
-    "description": "The debugger extension for the Yii framework",
+    "description": "Widget for yii2 framework",
     "keywords": [
         "yii2",
         "tabular",
