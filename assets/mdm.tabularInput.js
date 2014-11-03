@@ -18,6 +18,7 @@
         initRow: undefined,
         afterAddRow: undefined,
         afterInit: undefined,
+        beforeDelete: undefined,
         btnDelSelector: '[data-action=\'delete\']',
         serialSelector: '.serial',
         btnAddSelector: undefined,
@@ -25,7 +26,7 @@
 
     var listData = {
     };
-    
+
     var methods = {
         init: function(options) {
             return this.each(function() {
@@ -51,8 +52,7 @@
                 $(document)
                     .off('click.mdmTabularInput', btnDelSel)
                     .on('click.mdmTabularInput', btnDelSel, function(event) {
-                        $(this).closest(rowSelector).remove();
-                        $e.mdmTabularInput('rearrage');
+                        $e.mdmTabularInput('deleteRow',$(this).closest(rowSelector));
                         event.preventDefault();
                         return false;
                     });
@@ -98,6 +98,20 @@
             }
             $e.mdmTabularInput('rearrage');
             return $row;
+        },
+        deleteRow: function($row) {
+            var $e = $(this);
+            var id = $e.prop('id');
+            var settings = $.extend({}, defaults, options || {});
+            listData[id] = {settings: settings};
+            if (!$row instanceof jQuery) {
+                var rowSelector = "#" + id + " > " + settings.itemTag;
+                $row = $(rowSelector).eq($row);
+            }
+            if (settings.beforeDelete === undefined || settings.beforeDelete.call(this, $row) !== false) {
+                $row.remove();
+                $e.mdmTabularInput('rearrage');
+            }
         },
         getSelectedRows: function() {
             var $e = $(this);

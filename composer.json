@@ -1,25 +1,30 @@
 {
-	"name": "mdmsoft/yii2-widgets",
-	"description": "Widgets for Yii2",
-	"keywords": ["yii", "widgets", "tabular input"],
-	"type": "yii2-extension",
-	"license": "BSD-3-Clause",
-	"support": {
-		"issues": "https://github.com/mdmsoft/yii2-widgets/issues",
-		"source": "https://github.com/mdmsoft/yii2-widgets"
-	},
-	"authors": [
-		{
-			"name": "Misbahul Munir",
-			"email": "misbahuldmunir@gmail.com"
-		}
-	],
-	"require": {
-		"yiisoft/yii2": "*"
-	},
-	"autoload": {
-		"psr-4": {
-			"mdm\\widgets\\": ""
-		}
-	}
+    "name": "mdmsoft/yii2-widgets",
+    "description": "Widgets for Yii2",
+    "keywords": ["yii", "widgets", "tabular input"],
+    "type": "yii2-extension",
+    "license": "BSD-3-Clause",
+    "support": {
+        "issues": "https://github.com/mdmsoft/yii2-widgets/issues",
+        "source": "https://github.com/mdmsoft/yii2-widgets"
+    },
+    "authors": [
+        {
+            "name": "Misbahul Munir",
+            "email": "misbahuldmunir@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "~2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "mdm\\widgets\\": ""
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
 }

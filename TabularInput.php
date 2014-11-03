@@ -11,7 +11,8 @@ use yii\base\Widget;
 /**
  * Description of TabularInput
  *
- * @author Misbahul D Munir (mdmunir) <misbahuldmunir@gmail.com>
+ * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @since 1.0
  */
 class TabularInput extends Widget
 {
@@ -148,16 +149,23 @@ class TabularInput extends Widget
         }
     }
 
+    /**
+     * Register script
+     */
     protected function registerClientScript()
     {
         $id = $this->options['id'];
         $options = Json::encode($this->getClientOptions());
         $view = $this->getView();
-        list(,$publish) = $view->assetManager->publish('@mdm/widgets/assets');
-        $view->registerJsFile($publish . '/mdm.tabularInput.js', ['depends'=>['yii\web\JqueryAsset']]);
+        list(, $publish) = $view->assetManager->publish('@mdm/widgets/assets');
+        $view->registerJsFile($publish . '/mdm.tabularInput.js', ['depends' => ['yii\web\JqueryAsset']]);
         $view->registerJs("jQuery('#$id').mdmTabularInput($options);");
     }
 
+    /**
+     * Get client options
+     * @return array
+     */
     protected function getClientOptions()
     {
         $result = array_merge($this->clientOptions, [
