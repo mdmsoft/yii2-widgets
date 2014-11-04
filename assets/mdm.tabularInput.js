@@ -1,3 +1,16 @@
+/**
+ * jQuery plugin for tabular input.
+ * Allow to add and delete row.
+ * 
+ * ```javascript
+ * $('#id').mdmTabularInput({
+ *     
+ * });
+ * ```
+ * 
+ * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @since 1.0
+ */
 (function($) {
     $.fn.mdmTabularInput = function(method) {
         if (methods[method]) {
@@ -102,8 +115,7 @@
         deleteRow: function($row) {
             var $e = $(this);
             var id = $e.prop('id');
-            var settings = $.extend({}, defaults, options || {});
-            listData[id] = {settings: settings};
+            var settings = listData[id].settings;
             if (!$row instanceof jQuery) {
                 var rowSelector = "#" + id + " > " + settings.itemTag;
                 $row = $(rowSelector).eq($row);
