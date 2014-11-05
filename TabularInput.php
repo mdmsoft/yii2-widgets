@@ -17,12 +17,19 @@ use yii\base\Widget;
 class TabularInput extends Widget
 {
     /**
+     * @var array the HTML attributes for the container tag of the list view.
+     * The "tag" element specifies the tag name of the container element and defaults to "div".
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $options = ['class' => 'tabular'];
+
+    /**
      * @var array the HTML attributes for the container of the rendering result of each data model.
      * The "tag" element specifies the tag name of the container element and defaults to "div".
      * If "tag" is false, it means no container element will be rendered.
      * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
      */
-    public $itemOptions = [];
+    public $itemOptions = ['class' => 'table-row'];
 
     /**
      * @var string|callable the name of the view for rendering each data item, or a callback (e.g. an anonymous function)
@@ -56,27 +63,17 @@ class TabularInput extends Widget
     public $separator = "\n";
 
     /**
-     * @var array the HTML attributes for the container tag of the list view.
-     * The "tag" element specifies the tag name of the container element and defaults to "div".
-     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
-     */
-    public $options = ['class' => 'tabular'];
-
-    /**
-     *
-     * @var \yii\db\ActiveRecord[]
+     * @var \yii\db\ActiveRecord[]|array
      */
     public $allModels = [];
 
     /**
-     *
-     * @var string
+     * @var string 
      */
     public $modelClass;
 
     /**
-     *
-     * @var array
+     * @var array Client option
      */
     public $clientOptions = [];
 
@@ -158,7 +155,8 @@ class TabularInput extends Widget
         $options = Json::encode($this->getClientOptions());
         $view = $this->getView();
         list(, $publish) = $view->assetManager->publish('@mdm/widgets/assets');
-        $view->registerJsFile($publish . '/mdm.tabularInput.js', ['depends' => ['yii\web\JqueryAsset']]);
+        $view->registerJsFile($publish . '/js/mdm.tabularInput.js', ['depends' => ['yii\web\JqueryAsset']]);
+        $view->registerCssFile($publish . '/css/tabularInput.css');
         $view->registerJs("jQuery('#$id').mdmTabularInput($options);");
     }
 
