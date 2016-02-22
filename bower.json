@@ -13,8 +13,7 @@
     ],
     "license": "BSD-3-Clause",
     "main": [
-        "assets/js/mdm.tabularInput.js",
-        "assets/js/mdm.dropdownLink.js",
+        "assets/js/tabularInput.js",
         "assets/css/tabularInput.css"
     ],
     "ignore": [

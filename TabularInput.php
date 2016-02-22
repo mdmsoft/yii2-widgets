@@ -154,9 +154,7 @@ class TabularInput extends Widget
         $id = $this->options['id'];
         $options = Json::encode($this->getClientOptions());
         $view = $this->getView();
-        list(, $publish) = $view->assetManager->publish('@mdm/widgets/assets');
-        $view->registerJsFile($publish . '/js/mdm.tabularInput.js', ['depends' => ['yii\web\JqueryAsset']]);
-        $view->registerCssFile($publish . '/css/tabularInput.css');
+        TabularAsset::register($view);
         $view->registerJs("jQuery('#$id').mdmTabularInput($options);");
     }
 
@@ -166,8 +164,9 @@ class TabularInput extends Widget
      */
     protected function getClientOptions()
     {
+        $counter = count($this->allModels) ? max(array_keys($this->allModels)) + 1 : 0;
         $result = array_merge($this->clientOptions, [
-            'counter' => count($this->allModels),
+            'counter' => $counter,
             'template' => $this->renderItem($this->modelClass ? new $this->modelClass : null, '_key_', '_index_'),
             'itemTag' => ArrayHelper::getValue($this->itemOptions, 'tag', 'div'),
         ]);
