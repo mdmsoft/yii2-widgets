@@ -30,7 +30,7 @@
         afterAdd: 'afterAdd',
         beforeDelete: 'beforeDelete',
         afterDelete: 'afterDelete',
-        arrange: 'arrange'
+        change: 'change'
     };
     var defaults = {
         template: undefined,
@@ -84,7 +84,7 @@
                     .on('click.mdmTabularInput', settings.itemSelector, function () {
                         var $this = $(this);
                         if ($this.is(settings.itemSelector)) {
-                            $e.mdmTabularInput('toggleSelectRow', ($this));
+                            $e.mdmTabularInput('toggleSelectRow', $this);
                         }
                     });
 
@@ -103,7 +103,7 @@
             $(settings.itemSelector).each(function () {
                 $(this).find(settings.serialSelector).text(no++);
             });
-            $e.trigger(events.arrange);
+            $e.trigger(events.change);
         },
         addRow: function () {
             var $e = $(this);
@@ -131,6 +131,7 @@
             $e.trigger(event, [$row]);
             if (event.result !== false) {
                 $row.remove();
+                $e.trigger(events.afterDelete);
                 $e.mdmTabularInput('rearrage');
             }
         },
