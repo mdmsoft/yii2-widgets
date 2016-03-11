@@ -7,6 +7,8 @@ use yii\helpers\Json;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\base\Widget;
+use yii\base\InvalidConfigException;
+use yii\helpers\FileHelper;
 
 /**
  * Description of TabularInput
@@ -22,7 +24,6 @@ class TabularInput extends Widget
      * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     public $options = ['class' => 'tabular'];
-
     /**
      * @var array the HTML attributes for the container of the rendering result of each data model.
      * The "tag" element specifies the tag name of the container element and defaults to "div".
@@ -30,7 +31,6 @@ class TabularInput extends Widget
      * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     public $itemOptions = ['class' => 'table-row'];
-
     /**
      * @var string|callable the name of the view for rendering each data item, or a callback (e.g. an anonymous function)
      * for rendering each data item. If it specifies a view name, the following variables will
@@ -50,32 +50,39 @@ class TabularInput extends Widget
      * ~~~
      */
     public $itemView;
-
     /**
      * @var array additional parameters to be passed to [[itemView]] when it is being rendered.
      * This property is used only when [[itemView]] is a string representing a view name.
      */
     public $viewParams = [];
-
     /**
      * @var string the HTML code to be displayed between any two consecutive items.
      */
     public $separator = "\n";
-
     /**
      * @var \yii\db\ActiveRecord[]|array
      */
     public $allModels = [];
-
     /**
-     * @var string 
+     * @var string|array
      */
     public $modelClass;
-
     /**
      * @var array Client option
      */
     public $clientOptions = [];
+    /**
+     * @var array 
+     */
+    public $tags = [
+        '<@@' => '<?php',
+        '<@=' => '<?=',
+        '@>' => '?>',
+    ];
+    /**
+     * @var string 
+     */
+    private $_file;
 
     /**
      * @inheritdoc
@@ -85,6 +92,8 @@ class TabularInput extends Widget
         if (!isset($this->options['id'])) {
             $this->options['id'] = $this->getId();
         }
+        ob_start();
+        ob_implicit_flush(false);
     }
 
     /**
@@ -92,6 +101,18 @@ class TabularInput extends Widget
      */
     public function run()
     {
+        $template = trim(ob_get_clean());
+        if ($this->itemView === null && !empty($template)) {
+            $current = $this->getView()->getViewFile();
+            $file = sprintf('%x/%x-%s', crc32(dirname($current)) % 0x100, crc32($current), $this->options['id']);
+            $this->_file = Yii::getAlias("@runtime/mdm-tabular/{$file}.php");
+            if (!is_file($this->_file) || filemtime($current) >= filemtime($this->_file)) {
+                FileHelper::createDirectory(dirname($this->_file));
+                $template = str_replace(array_keys($this->tags), array_values($this->tags), $template);
+                file_put_contents($this->_file, $template, LOCK_EX);
+            }
+        }
+
         $this->registerClientScript();
 
         $tag = ArrayHelper::remove($this->options, 'tag', 'div');
@@ -123,15 +144,17 @@ class TabularInput extends Widget
      */
     public function renderItem($model, $key, $index)
     {
+        $params = array_merge([
+            'model' => $model,
+            'key' => $key,
+            'index' => $index,
+            'widget' => $this,
+            ], $this->viewParams);
+
         if ($this->itemView === null) {
-            $content = $key;
+            $content = $this->_file ? $this->template($params) : $key;
         } elseif (is_string($this->itemView)) {
-            $content = $this->getView()->render($this->itemView, array_merge([
-                'model' => $model,
-                'key' => $key,
-                'index' => $index,
-                'widget' => $this,
-                    ], $this->viewParams));
+            $content = $this->getView()->render($this->itemView, $params);
         } else {
             $content = call_user_func($this->itemView, $model, $key, $index, $this);
         }
@@ -139,7 +162,7 @@ class TabularInput extends Widget
         $tag = ArrayHelper::remove($options, 'tag', 'div');
         if ($tag !== false) {
             $options['data-key'] = is_array($key) ? json_encode($key) : (string) $key;
-
+            Html::addCssClass($options, 'mdm-tabular-item');
             return Html::tag($tag, $content, $options);
         } else {
             return $content;
@@ -152,7 +175,7 @@ class TabularInput extends Widget
     protected function registerClientScript()
     {
         $id = $this->options['id'];
-        $options = Json::encode($this->getClientOptions());
+        $options = Json::htmlEncode($this->getClientOptions());
         $view = $this->getView();
         TabularAsset::register($view);
         $view->registerJs("jQuery('#$id').mdmTabularInput($options);");
@@ -165,12 +188,30 @@ class TabularInput extends Widget
     protected function getClientOptions()
     {
         $counter = count($this->allModels) ? max(array_keys($this->allModels)) + 1 : 0;
-        $result = array_merge($this->clientOptions, [
+        $model = $this->modelClass ? Yii::createObject($this->modelClass) : null;
+        $clientOptions = $this->clientOptions;
+        $itemTag = ArrayHelper::getValue($this->itemOptions, 'tag', 'div');
+        if (empty($clientOptions['itemSelector']) && $itemTag !== false) {
+            $clientOptions['itemSelector'] = "{$itemTag}.mdm-tabular-item";
+        }
+        if (empty($clientOptions['itemSelector'])) {
+            throw new InvalidConfigException('Value of "clientOptions[\'itemSelector\']" must be specified.');
+        }
+        $result = array_merge($clientOptions, [
             'counter' => $counter,
-            'template' => $this->renderItem($this->modelClass ? new $this->modelClass : null, '_key_', '_index_'),
-            'itemTag' => ArrayHelper::getValue($this->itemOptions, 'tag', 'div'),
+            'template' => $this->renderItem($model, '_dkey_', '_dindex_'),
         ]);
 
         return $result;
+    }
+
+    /**
+     * Render template
+     * @param array $params
+     * @return string
+     */
+    protected function template($params = [])
+    {
+        return $this->getView()->renderPhpFile($this->_file, $params);
     }
 }
