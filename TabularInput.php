@@ -60,13 +60,18 @@ class TabularInput extends Widget
      */
     public $separator = "\n";
     /**
-     * @var \yii\db\ActiveRecord[]|array
+     * @var \yii\base\Model[]|array
      */
     public $allModels = [];
     /**
      * @var string|array
+     * @deprecated since version 1.2 Use [[model]] instead.
      */
     public $modelClass;
+    /**
+     * @var mixed 
+     */
+    public $model;
     /**
      * @var array Client option
      */
@@ -82,7 +87,7 @@ class TabularInput extends Widget
     /**
      * @var string 
      */
-    private $_file;
+    private $_templateFile;
 
     /**
      * @inheritdoc
@@ -91,6 +96,13 @@ class TabularInput extends Widget
     {
         if (!isset($this->options['id'])) {
             $this->options['id'] = $this->getId();
+        }
+        if (empty($this->model)) {
+            if (!empty($this->modelClass)) {
+                $this->model = Yii::createObject($this->modelClass);
+            }
+        } elseif (!is_object($this->model)) {
+            $this->model = Yii::createObject($this->model);
         }
         ob_start();
         ob_implicit_flush(false);
@@ -105,11 +117,11 @@ class TabularInput extends Widget
         if ($this->itemView === null && !empty($template)) {
             $current = $this->getView()->getViewFile();
             $file = sprintf('%x/%x-%s', crc32(dirname($current)) % 0x100, crc32($current), $this->options['id']);
-            $this->_file = Yii::getAlias("@runtime/mdm-tabular/{$file}.php");
-            if (!is_file($this->_file) || filemtime($current) >= filemtime($this->_file)) {
-                FileHelper::createDirectory(dirname($this->_file));
+            $this->_templateFile = Yii::getAlias("@runtime/mdm-tabular/{$file}.php");
+            if (!is_file($this->_templateFile) || filemtime($current) >= filemtime($this->_templateFile)) {
+                FileHelper::createDirectory(dirname($this->_templateFile));
                 $template = str_replace(array_keys($this->tags), array_values($this->tags), $template);
-                file_put_contents($this->_file, $template, LOCK_EX);
+                file_put_contents($this->_templateFile, $template, LOCK_EX);
             }
         }
 
@@ -152,7 +164,7 @@ class TabularInput extends Widget
             ], $this->viewParams);
 
         if ($this->itemView === null) {
-            $content = $this->_file ? $this->template($params) : $key;
+            $content = $this->_templateFile ? $this->template($params) : $key;
         } elseif (is_string($this->itemView)) {
             $content = $this->getView()->render($this->itemView, $params);
         } else {
@@ -188,7 +200,6 @@ class TabularInput extends Widget
     protected function getClientOptions()
     {
         $counter = count($this->allModels) ? max(array_keys($this->allModels)) + 1 : 0;
-        $model = $this->modelClass ? Yii::createObject($this->modelClass) : null;
         $clientOptions = $this->clientOptions;
         $itemTag = ArrayHelper::getValue($this->itemOptions, 'tag', 'div');
         if (empty($clientOptions['itemSelector']) && $itemTag !== false) {
@@ -199,7 +210,7 @@ class TabularInput extends Widget
         }
         $result = array_merge($clientOptions, [
             'counter' => $counter,
-            'template' => $this->renderItem($model, '_dkey_', '_dindex_'),
+            'template' => $this->renderItem($this->model, '_dkey_', '_dindex_'),
         ]);
 
         return $result;
@@ -212,6 +223,6 @@ class TabularInput extends Widget
      */
     protected function template($params = [])
     {
-        return $this->getView()->renderPhpFile($this->_file, $params);
+        return $this->getView()->renderPhpFile($this->_templateFile, $params);
     }
 }
