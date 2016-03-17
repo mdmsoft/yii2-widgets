@@ -33,6 +33,6 @@ trait MultipleTrait
      */
     public static function createMultiple($data, $formName = null, &$origin = [], $keys = null, $options = [])
     {
-        return ModelHelper::createMultiple(get_class($this), $data, $formName, $origin, $keys, $options);
+        return ModelHelper::createMultiple(get_called_class(), $data, $formName, $origin, $keys, $options);
     }
 }
