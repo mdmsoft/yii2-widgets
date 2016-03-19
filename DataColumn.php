@@ -50,26 +50,12 @@ class DataColumn extends Column
                 $this->header = Inflector::camel2words($this->attribute);
             }
         }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function renderDataCell($model, $key, $index)
-    {
-        if ($this->value !== null) {
-            if ($this->value instanceof \Closure) {
-                $value = call_user_func($this->value, $model, $key, $index);
-            } else {
-                $value = Html::getAttributeValue($model, "[$key]{$this->attribute}");
-            }
-            if ($this->format !== null) {
-                $value = Yii::$app->getFormatter()->format($value, $this->format);
-            }
-        } else {
-            $value = $this->renderInputCell($model, $key);
+        if ($this->value === null) {
+            $this->value = [$this, 'renderInputCell'];
+        } elseif (is_string($this->value)) {
+            $this->attribute = $this->value;
+            $this->value = [$this, 'renderTextCell'];
         }
-        return Html::tag('td', $value, $this->contentOptions);
     }
 
     /**
@@ -89,5 +75,16 @@ class DataColumn extends Column
         } else {
             return Html::activeTextInput($model, "[$key]{$this->attribute}", $this->inputOptions);
         }
+    }
+
+    /**
+     * Render input cell
+     * @param Model $model model for cell
+     * @param string $key
+     * @return string
+     */
+    public function renderTextCell($model, $key)
+    {
+        return Html::getAttributeValue($model, "[$key]{$this->attribute}");
     }
 }

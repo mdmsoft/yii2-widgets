@@ -61,7 +61,7 @@ class Column extends \yii\base\Object
      */
     public function renderDataCell($model, $key, $index)
     {
-        if ($this->value instanceof \Closure) {
+        if (is_callable($this->value)) {
             $value = call_user_func($this->value, $model, $key, $index);
         } else {
             $value = $this->value;
