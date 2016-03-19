@@ -30,17 +30,21 @@ class DataColumn extends Column
      */
     public function init()
     {
-        $field = str_replace(['[]', '][', '[', ']', ' ', '.'], ['', '-', '-', '', '-', '-'], $this->attribute);
-        if (empty($this->inputOptions['data-field'])) {
+        if ($this->attribute) {
+            $field = str_replace(['[]', '][', '[', ']', ' ', '.'], ['', '-', '-', '', '-', '-'], $this->attribute);
+        } else {
+            $field = false;
+        }
+        if (empty($this->inputOptions['data-field']) && $field) {
             $this->inputOptions['data-field'] = $field;
         }
-        if (!array_key_exists('id', $this->inputOptions)) {
+        if (!array_key_exists('id', $this->inputOptions) && $field) {
             $this->inputOptions['id'] = false;
         }
-        if (empty($this->contentOptions['data-column'])) {
+        if (empty($this->contentOptions['data-column']) && $field) {
             $this->contentOptions['data-column'] = $field;
         }
-        if (empty($this->headerOptions['data-column'])) {
+        if (empty($this->headerOptions['data-column']) && $field) {
             $this->headerOptions['data-column'] = $field;
         }
         if ($this->header === null) {
