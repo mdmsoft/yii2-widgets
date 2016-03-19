@@ -42,16 +42,12 @@
         itemSelector: undefined,
     };
 
-    var listData = {
-    };
-
     var methods = {
         init: function (options) {
             return this.each(function () {
                 var $e = $(this);
-                var id = $e.prop('id');
                 var settings = $.extend({}, defaults, options || {});
-                listData[id] = {settings: settings};
+                $e.data('mdmTabularInput', {settings: settings});
 
                 // add button
                 if (settings.btnAddSelector) {
@@ -91,7 +87,7 @@
         },
         rearrage: function () {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             var no = 1;
             $e.find(settings.itemSelector).each(function () {
                 $(this).find(settings.serialSelector).text(no++);
@@ -100,7 +96,7 @@
         },
         addRow: function () {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             var counter = settings.counter++;
             var template = settings.template.replace(/_dkey_/g, counter).replace(/_dindex_/g, counter);
             var $row = $(template);
@@ -116,8 +112,7 @@
         },
         deleteRow: function ($row) {
             var $e = $(this);
-            var id = $e.prop('id');
-            var settings = listData[id].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             if (!$row instanceof jQuery) {
                 $row = $e.find(settings.itemSelector).eq($row);
             }
@@ -132,7 +127,7 @@
         },
         getSelectedRows: function () {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             var rows = [];
             $e.find(settings.itemSelector).filter('.selected').each(function () {
                 rows.push($(this));
@@ -141,12 +136,12 @@
         },
         getSelectedRow: function () {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             return $e.find(settings.itemSelector).filter('.selected').first();
         },
         getAllRows: function () {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             var rows = [];
             $e.find(settings.itemSelector).each(function () {
                 rows.push($(this));
@@ -155,7 +150,7 @@
         },
         getValues: function () {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             var values = [];
             $e.find(settings.itemSelector).each(function () {
                 var value = {};
@@ -168,7 +163,7 @@
         },
         getValue: function ($row) {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             if (!$row instanceof jQuery) {
                 $row = $e.find(settings.itemSelector).eq($row);
             }
@@ -181,12 +176,12 @@
         },
         getCount: function () {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             return $e.find(settings.itemSelector).length;
         },
         toggleSelectRow: function ($row) {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             if (!settings.multiSelect) {
                 var has = $row.hasClass('selected');
                 $e.find(settings.itemSelector).removeClass('selected');
@@ -199,7 +194,7 @@
         },
         selectRow: function ($row) {
             var $e = $(this);
-            var settings = listData[$e.prop('id')].settings;
+            var settings = $e.data('mdmTabularInput').settings;
             if (!settings.multiSelect) {
                 $e.find(settings.itemSelector).removeClass('selected');
             }
@@ -212,8 +207,7 @@
             });
         },
         data: function () {
-            var id = $(this).prop('id');
-            return listData[id];
+            return $(this).data('mdmTabularInput');
         }
     };
 })(window.jQuery);

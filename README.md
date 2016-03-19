@@ -58,3 +58,27 @@ Usage
 <td><?= Html::activeInputField($model,"[$key]qty") ?></td>
 <td><a data-action="delete"><span glypicon glypicon-minus></span></a></td>
 ```
+
+# GridInput Widget
+```php
+<?= 
+    GridInput::widget([
+        'id' => 'detail-grid',
+        'allModels' => $model->items,
+        'model' => OrderItem::className(),
+        'columns' => [
+            ['class' => 'mdm\widgets\SerialColumn'],
+            'product_id',
+            'qty',
+            [
+                'attribute' => 'uom_id',
+                'items' => [
+                    1 => 'Pcs',
+                    2 => 'Dozen'
+                ]
+            ],
+            ['class' => 'mdm\widgets\ButtonColumn']
+        ],
+    ]);
+?>
+```

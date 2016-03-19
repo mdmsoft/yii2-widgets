@@ -104,6 +104,7 @@ class TabularInput extends Widget
         } elseif (!is_object($this->model)) {
             $this->model = Yii::createObject($this->model);
         }
+        Html::addCssClass($this->itemOptions, 'mdm-tabular-item');
         ob_start();
         ob_implicit_flush(false);
     }
@@ -174,7 +175,6 @@ class TabularInput extends Widget
         $tag = ArrayHelper::remove($options, 'tag', 'div');
         if ($tag !== false) {
             $options['data-key'] = is_array($key) ? json_encode($key) : (string) $key;
-            Html::addCssClass($options, 'mdm-tabular-item');
             return Html::tag($tag, $content, $options);
         } else {
             return $content;
