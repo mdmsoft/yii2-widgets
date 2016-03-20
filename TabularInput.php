@@ -9,6 +9,7 @@ use yii\helpers\Html;
 use yii\base\Widget;
 use yii\base\InvalidConfigException;
 use yii\helpers\FileHelper;
+use yii\widgets\ActiveForm;
 
 /**
  * Description of TabularInput
@@ -72,6 +73,10 @@ class TabularInput extends Widget
      * @var mixed 
      */
     public $model;
+    /**
+     * @var ActiveForm 
+     */
+    public $form;
     /**
      * @var array Client option
      */
@@ -162,8 +167,10 @@ class TabularInput extends Widget
             'key' => $key,
             'index' => $index,
             'widget' => $this,
+            'form' => $this->form,
             ], $this->viewParams);
 
+        // render content
         if ($this->itemView === null) {
             $content = $this->_templateFile ? $this->template($params) : $key;
         } elseif (is_string($this->itemView)) {
@@ -173,12 +180,9 @@ class TabularInput extends Widget
         }
         $options = $this->itemOptions;
         $tag = ArrayHelper::remove($options, 'tag', 'div');
-        if ($tag !== false) {
-            $options['data-key'] = is_array($key) ? json_encode($key) : (string) $key;
-            return Html::tag($tag, $content, $options);
-        } else {
-            return $content;
-        }
+        $options['data-key'] = (string) $key;
+        $options['data-index'] = (string) $index;
+        return Html::tag($tag, $content, $options);
     }
 
     /**
@@ -201,19 +205,42 @@ class TabularInput extends Widget
     {
         $counter = count($this->allModels) ? max(array_keys($this->allModels)) + 1 : 0;
         $clientOptions = $this->clientOptions;
+
+        $clientOptions['counter'] = $counter;
         $itemTag = ArrayHelper::getValue($this->itemOptions, 'tag', 'div');
-        if (empty($clientOptions['itemSelector']) && $itemTag !== false) {
+        if (empty($clientOptions['itemSelector'])) {
             $clientOptions['itemSelector'] = "{$itemTag}.mdm-tabular-item";
         }
         if (empty($clientOptions['itemSelector'])) {
             throw new InvalidConfigException('Value of "clientOptions[\'itemSelector\']" must be specified.');
         }
-        $result = array_merge($clientOptions, [
-            'counter' => $counter,
-            'template' => $this->renderItem($this->model, '_dkey_', '_dindex_'),
-        ]);
+        if ($this->form instanceof ActiveForm) {
+            $clientOptions['formSelector'] = '#' . $this->form->options['id'];
+        }
 
-        return $result;
+        // template and js
+        $view = $this->getView();
+        $oldJs = $view->js;
+        $view->js = [];
+        if ($this->form instanceof ActiveForm) {
+            $offset = count($this->form->attributes);
+        }
+        $template = $this->renderItem($this->model, '_dkey_', '_dindex_');
+        if ($this->form instanceof ActiveForm) {
+            $clientOptions['validations'] = array_slice($this->form->attributes, $offset);
+        }
+        $js = [];
+        foreach ($view->js as $pieces) {
+            $js[] = implode("\n", $pieces);
+        }
+        if (count($js)) {
+            $clientOptions['templateJs'] = implode("\n", $js);
+        }
+        $view->js = $oldJs;
+        // ***
+
+        $clientOptions['template'] = $template;
+        return $clientOptions;
     }
 
     /**

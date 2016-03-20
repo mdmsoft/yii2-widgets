@@ -33,6 +33,7 @@
         change: 'change'
     };
     var defaults = {
+        container: undefined,
         template: undefined,
         multiSelect: false,
         counter: 0,
@@ -40,15 +41,24 @@
         serialSelector: '.serial',
         btnAddSelector: undefined,
         itemSelector: undefined,
+        formSelector: undefined,
+        validations: undefined,
     };
 
+    function element($e, container) {
+        if (container) {
+            return $e.find(container);
+        } else {
+            return $e;
+        }
+    }
     var methods = {
         init: function (options) {
             return this.each(function () {
                 var $e = $(this);
                 var settings = $.extend({}, defaults, options || {});
+                var $container = element($e, settings.container);
                 $e.data('mdmTabularInput', {settings: settings});
-
                 // add button
                 if (settings.btnAddSelector) {
                     $(settings.btnAddSelector)
@@ -61,7 +71,8 @@
                 }
                 // delete button
                 if (settings.btnDelSelector) {
-                    $e.off('click.mdmTabularInput', settings.btnDelSelector)
+                    $container
+                        .off('click.mdmTabularInput', settings.btnDelSelector)
                         .on('click.mdmTabularInput', settings.btnDelSelector, function (event) {
                             $e.mdmTabularInput('deleteRow', $(this).closest(settings.itemSelector));
                             event.preventDefault();
@@ -69,7 +80,8 @@
                         });
                 }
                 // select/togle row by click
-                $e.off('click.mdmTabularInput', settings.itemSelector)
+                $container
+                    .off('click.mdmTabularInput', settings.itemSelector)
                     .on('click.mdmTabularInput', settings.itemSelector, function (e) {
                         var $this = $(this);
                         if ($this.is(settings.itemSelector)) {
@@ -77,7 +89,8 @@
                         }
                     });
 
-                $e.find(settings.itemSelector).each(function () {
+                $container
+                    .children(settings.itemSelector).each(function () {
                     $e.trigger(events.initRow, [$(this)]);
                 });
                 $e.trigger(events.init);
@@ -89,7 +102,7 @@
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             var no = 1;
-            $e.find(settings.itemSelector).each(function () {
+            element($e, settings.container).children(settings.itemSelector).each(function () {
                 $(this).find(settings.serialSelector).text(no++);
             });
             $e.trigger(events.change);
@@ -98,14 +111,33 @@
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             var counter = settings.counter++;
-            var template = settings.template.replace(/_dkey_/g, counter).replace(/_dindex_/g, counter);
+            var template = settings.template.replace(/_dkey_/g, counter)
+                .replace(/_dindex_/g, counter);
             var $row = $(template);
 
             var event = $.Event(events.beforeAdd);
             $e.trigger(event, [$row]);
             if (event.result !== false) {
-                $e.append($row);
+                element($e, settings.container).append($row);
                 $e.trigger(events.afterAdd, [$row]);
+                // add js
+                if (settings.templateJs) {
+                    var js = settings.templateJs.replace(/_dkey_/g, counter).replace(/_dindex_/g, counter);
+                    eval(js);
+                }
+                // validation for active form
+                if (settings.formSelector && settings.validations && settings.validations.length) {
+                    var $form = $(settings.formSelector);
+                    var validations = $.extend(true, {}, settings.validations);
+                    $.each(validations, function () {
+                        var validation = this;
+                        $.each(['id', 'name', 'container', 'input'], function () {
+                            validation[this] = validation[this].replace(/_dkey_/g, counter)
+                                .replace(/_dindex_/g, counter);
+                        });
+                        $form.yiiActiveForm('add', validation);
+                    });
+                }
                 $e.mdmTabularInput('rearrage');
             }
             return $row;
@@ -114,14 +146,25 @@
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             if (!$row instanceof jQuery) {
-                $row = $e.find(settings.itemSelector).eq($row);
+                $row = element($e, settings.container).children(settings.itemSelector).eq($row);
             }
 
             var event = $.Event(events.beforeDelete);
             $e.trigger(event, [$row]);
             if (event.result !== false) {
+                var key = $row.data('key');
+                var index = $row.data('index');
                 $row.remove();
                 $e.trigger(events.afterDelete);
+                if (settings.formSelector && settings.validations && settings.validations.length) {
+                    var $form = $(settings.formSelector);
+                    $.each(settings.validations, function () {
+                        if (this.id) {
+                            var id = this.id.replace(/_dkey_/g, key).replace(/_dindex_/g, index);
+                            $form.yiiActiveForm('remove', id);
+                        }
+                    });
+                }
                 $e.mdmTabularInput('rearrage');
             }
         },
@@ -129,7 +172,8 @@
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             var rows = [];
-            $e.find(settings.itemSelector).filter('.selected').each(function () {
+            element($e, settings.container).children(settings.itemSelector)
+                .filter('.selected').each(function () {
                 rows.push($(this));
             });
             return rows;
@@ -137,13 +181,14 @@
         getSelectedRow: function () {
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
-            return $e.find(settings.itemSelector).filter('.selected').first();
+            return element($e, settings.container).children(settings.itemSelector)
+                .filter('.selected').first();
         },
         getAllRows: function () {
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             var rows = [];
-            $e.find(settings.itemSelector).each(function () {
+            element($e, settings.container).children(settings.itemSelector).each(function () {
                 rows.push($(this));
             });
             return rows;
@@ -152,7 +197,7 @@
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             var values = [];
-            $e.find(settings.itemSelector).each(function () {
+            element($e, settings.container).children(settings.itemSelector).each(function () {
                 var value = {};
                 $(this).find(':input[data-field]').each(function () {
                     value[$(this).data('field')] = $(this).val();
@@ -165,7 +210,7 @@
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             if (!$row instanceof jQuery) {
-                $row = $e.find(settings.itemSelector).eq($row);
+                $row = element($e, settings.container).children(settings.itemSelector).eq($row);
             }
 
             var value = {};
@@ -177,14 +222,14 @@
         getCount: function () {
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
-            return $e.find(settings.itemSelector).length;
+            return element($e, settings.container).children(settings.itemSelector).length;
         },
         toggleSelectRow: function ($row) {
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             if (!settings.multiSelect) {
                 var has = $row.hasClass('selected');
-                $e.find(settings.itemSelector).removeClass('selected');
+                element($e, settings.container).children(settings.itemSelector).removeClass('selected');
                 if (!has) {
                     $row.addClass('selected');
                 }
@@ -196,7 +241,7 @@
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             if (!settings.multiSelect) {
-                $e.find(settings.itemSelector).removeClass('selected');
+                element($e, settings.container).children(settings.itemSelector).removeClass('selected');
             }
             $row.addClass('selected');
         },

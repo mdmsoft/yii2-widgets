@@ -4,9 +4,9 @@ namespace mdm\widgets;
 
 use Yii;
 use yii\helpers\Html;
-use yii\helpers\ArrayHelper;
 use yii\base\Model;
 use yii\helpers\Inflector;
+use yii\widgets\ActiveForm;
 
 /**
  * Description of DataColumn
@@ -24,6 +24,10 @@ class DataColumn extends Column
      * @var array option for input
      */
     public $inputOptions = ['class' => 'form-control'];
+    /**
+     * @var array|\Closure
+     */
+    public $items;
 
     /**
      * @inheritdoc
@@ -37,9 +41,6 @@ class DataColumn extends Column
         }
         if (empty($this->inputOptions['data-field']) && $field) {
             $this->inputOptions['data-field'] = $field;
-        }
-        if (!array_key_exists('id', $this->inputOptions) && $field) {
-            $this->inputOptions['id'] = false;
         }
         if (empty($this->contentOptions['data-column']) && $field) {
             $this->contentOptions['data-column'] = $field;
@@ -70,13 +71,23 @@ class DataColumn extends Column
      */
     public function renderInputCell($model, $key)
     {
-        $items = ArrayHelper::getValue($this->inputOptions, 'items');
+        $form = $this->grid->form;
+        $items = $this->items;
         if ($items !== null) {
             if ($items instanceof \Closure) {
                 $items = call_user_func($items, $model, $key);
             }
-            return Html::activeDropDownList($model, "[$key]{$this->attribute}", $items, $this->inputOptions);
+            if ($form instanceof ActiveForm) {
+                return $form->field($model, "[$key]{$this->attribute}")
+                        ->dropDownList($items, $this->inputOptions)->label(false);
+            } else {
+                return Html::activeDropDownList($model, "[$key]{$this->attribute}", $items, $this->inputOptions);
+            }
         } else {
+            if ($form instanceof ActiveForm) {
+                return $form->field($model, "[$key]{$this->attribute}")
+                        ->textInput($this->inputOptions)->label(false);
+            }
             return Html::activeTextInput($model, "[$key]{$this->attribute}", $this->inputOptions);
         }
     }

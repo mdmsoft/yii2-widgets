@@ -7,6 +7,7 @@ use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\base\Model;
 use yii\helpers\Json;
+use yii\widgets\ActiveForm;
 
 /**
  * Description of GridInput
@@ -62,6 +63,10 @@ class GridInput extends \yii\base\Widget
      * @var array
      */
     public $clientOptions = [];
+    /**
+     * @var ActiveForm
+     */
+    public $form;
 
     /**
      * @inheritdoc
@@ -76,7 +81,7 @@ class GridInput extends \yii\base\Widget
                 $column = Yii::createObject([
                         'class' => $this->defaultColumnClass,
                         'attribute' => $column,
-                        'grid' => $this
+                        'grid' => $this,
                 ]);
             } elseif (is_array($column)) {
                 if (!isset($column['class'])) {
@@ -103,26 +108,50 @@ class GridInput extends \yii\base\Widget
         $options = Json::htmlEncode($this->getClientOptions());
         $view = $this->getView();
         TabularAsset::register($view);
-        $view->registerJs("jQuery('#$id>tbody').mdmTabularInput($options);");
+        $view->registerJs("jQuery('#$id').mdmTabularInput($options);");
     }
 
     /**
      * Get client option
      * @return array
      */
-    protected function getClientOption()
+    protected function getClientOptions()
     {
         $counter = count($this->allModels) ? max(array_keys($this->allModels)) + 1 : 0;
         $clientOptions = $this->clientOptions;
+
+        $clientOptions['counter'] = $counter;
+        $clientOptions['container'] = 'tbody';
+
         if (empty($clientOptions['itemSelector'])) {
             $clientOptions['itemSelector'] = 'tr.mdm-tabular-item';
         }
-        $result = array_merge($clientOptions, [
-            'counter' => $counter,
-            'template' => $this->renderItem($this->model, '_dkey_', '_dindex_'),
-        ]);
+        if ($this->form instanceof ActiveForm) {
+            $clientOptions['formSelector'] = '#' . $this->form->options['id'];
+        }
 
-        return $result;
+        // template and js
+        $view = $this->getView();
+        $oldJs = $view->js;
+        $view->js = [];
+        if ($this->form instanceof ActiveForm) {
+            $offset = count($this->form->attributes);
+        }
+        $template = $this->renderItem($this->model, '_dkey_', '_dindex_');
+        if ($this->form instanceof ActiveForm) {
+            $clientOptions['validations'] = array_slice($this->form->attributes, $offset);
+        }
+        $js = [];
+        foreach ($view->js as $pieces) {
+            $js[] = implode("\n", $pieces);
+        }
+        if (count($js)) {
+            $clientOptions['templateJs'] = implode("\n", $js);
+        }
+        $view->js = $oldJs;
+        // ***
+        $clientOptions['template'] = $template;
+        return $clientOptions;
     }
 
     /**
