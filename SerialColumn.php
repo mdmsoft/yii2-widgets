@@ -22,8 +22,8 @@ class SerialColumn extends Column
      */
     public function init()
     {
-        Html::addCssClass($this->contentOptions, 'serial');
         if (!isset($this->grid->clientOptions['serialSelector'])) {
+            Html::addCssClass($this->contentOptions, 'serial');
             $this->grid->clientOptions['serialSelector'] = 'td.serial';
         }
         if ($this->value === null) {

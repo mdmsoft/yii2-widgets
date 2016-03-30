@@ -3,13 +3,9 @@
 namespace mdm\widgets;
 
 use Yii;
-use yii\helpers\Json;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use yii\base\Widget;
-use yii\base\InvalidConfigException;
 use yii\helpers\FileHelper;
-use yii\widgets\ActiveForm;
 
 /**
  * Description of TabularInput
@@ -17,21 +13,8 @@ use yii\widgets\ActiveForm;
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
  */
-class TabularInput extends Widget
+class TabularInput extends TabularWidget
 {
-    /**
-     * @var array the HTML attributes for the container tag of the list view.
-     * The "tag" element specifies the tag name of the container element and defaults to "div".
-     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
-     */
-    public $options = ['class' => 'tabular'];
-    /**
-     * @var array the HTML attributes for the container of the rendering result of each data model.
-     * The "tag" element specifies the tag name of the container element and defaults to "div".
-     * If "tag" is false, it means no container element will be rendered.
-     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
-     */
-    public $itemOptions = ['class' => 'table-row'];
     /**
      * @var string|callable the name of the view for rendering each data item, or a callback (e.g. an anonymous function)
      * for rendering each data item. If it specifies a view name, the following variables will
@@ -57,31 +40,6 @@ class TabularInput extends Widget
      */
     public $viewParams = [];
     /**
-     * @var string the HTML code to be displayed between any two consecutive items.
-     */
-    public $separator = "\n";
-    /**
-     * @var \yii\base\Model[]|array
-     */
-    public $allModels = [];
-    /**
-     * @var string|array
-     * @deprecated since version 1.2 Use [[model]] instead.
-     */
-    public $modelClass;
-    /**
-     * @var mixed 
-     */
-    public $model;
-    /**
-     * @var ActiveForm 
-     */
-    public $form;
-    /**
-     * @var array Client option
-     */
-    public $clientOptions = [];
-    /**
      * @var array 
      */
     public $tags = [
@@ -99,17 +57,7 @@ class TabularInput extends Widget
      */
     public function init()
     {
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = $this->getId();
-        }
-        if (empty($this->model)) {
-            if (!empty($this->modelClass)) {
-                $this->model = Yii::createObject($this->modelClass);
-            }
-        } elseif (!is_object($this->model)) {
-            $this->model = Yii::createObject($this->model);
-        }
-        Html::addCssClass($this->itemOptions, 'mdm-tabular-item');
+        parent::init();
         ob_start();
         ob_implicit_flush(false);
     }
@@ -130,35 +78,15 @@ class TabularInput extends Widget
                 file_put_contents($this->_templateFile, $template, LOCK_EX);
             }
         }
-
-        $this->registerClientScript();
-
-        $tag = ArrayHelper::remove($this->options, 'tag', 'div');
-        $content = $this->renderItems();
-        echo Html::tag($tag, $content? : '', $this->options);
-    }
-
-    /**
-     * Renders all data models.
-     * @return string the rendering result
-     */
-    public function renderItems()
-    {
-        $rows = [];
-        $index = 0;
-        foreach ($this->allModels as $key => $model) {
-            $rows[] = $this->renderItem($model, $key, $index++);
+        if (empty($this->clientOptions['itemSelector']) && ($tag = ArrayHelper::getValue($this->itemOptions, 'tag', 'div'))) {
+            Html::addCssClass($this->itemOptions, "mdm-item{$this->level}");
+            $this->clientOptions['itemSelector'] = "{$tag}.mdm-item{$this->level}";
         }
-
-        return implode($this->separator, $rows);
+        parent::run();
     }
 
     /**
-     * Renders a single data model.
-     * @param  mixed   $model the data model to be rendered
-     * @param  mixed   $key   the key value associated with the data model
-     * @param  integer $index the zero-based index of the data model in the model array returned by [[dataProvider]].
-     * @return string  the rendering result
+     * @inheritdoc
      */
     public function renderItem($model, $key, $index)
     {
@@ -180,67 +108,12 @@ class TabularInput extends Widget
         }
         $options = $this->itemOptions;
         $tag = ArrayHelper::remove($options, 'tag', 'div');
+        if ($tag === false) {
+            return $content;
+        }
         $options['data-key'] = (string) $key;
         $options['data-index'] = (string) $index;
         return Html::tag($tag, $content, $options);
-    }
-
-    /**
-     * Register script
-     */
-    protected function registerClientScript()
-    {
-        $id = $this->options['id'];
-        $options = Json::htmlEncode($this->getClientOptions());
-        $view = $this->getView();
-        TabularAsset::register($view);
-        $view->registerJs("jQuery('#$id').mdmTabularInput($options);");
-    }
-
-    /**
-     * Get client options
-     * @return array
-     */
-    protected function getClientOptions()
-    {
-        $counter = count($this->allModels) ? max(array_keys($this->allModels)) + 1 : 0;
-        $clientOptions = $this->clientOptions;
-
-        $clientOptions['counter'] = $counter;
-        $itemTag = ArrayHelper::getValue($this->itemOptions, 'tag', 'div');
-        if (empty($clientOptions['itemSelector'])) {
-            $clientOptions['itemSelector'] = "{$itemTag}.mdm-tabular-item";
-        }
-        if (empty($clientOptions['itemSelector'])) {
-            throw new InvalidConfigException('Value of "clientOptions[\'itemSelector\']" must be specified.');
-        }
-        if ($this->form instanceof ActiveForm) {
-            $clientOptions['formSelector'] = '#' . $this->form->options['id'];
-        }
-
-        // template and js
-        $view = $this->getView();
-        $oldJs = $view->js;
-        $view->js = [];
-        if ($this->form instanceof ActiveForm) {
-            $offset = count($this->form->attributes);
-        }
-        $template = $this->renderItem($this->model, '_dkey_', '_dindex_');
-        if ($this->form instanceof ActiveForm) {
-            $clientOptions['validations'] = array_slice($this->form->attributes, $offset);
-        }
-        $js = [];
-        foreach ($view->js as $pieces) {
-            $js[] = implode("\n", $pieces);
-        }
-        if (count($js)) {
-            $clientOptions['templateJs'] = implode("\n", $js);
-        }
-        $view->js = $oldJs;
-        // ***
-
-        $clientOptions['template'] = $template;
-        return $clientOptions;
     }
 
     /**

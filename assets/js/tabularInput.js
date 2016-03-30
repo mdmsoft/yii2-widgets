@@ -43,6 +43,7 @@
         itemSelector: undefined,
         formSelector: undefined,
         validations: undefined,
+        replaces: {},
     };
 
     function element($e, container) {
@@ -52,12 +53,21 @@
             return $e;
         }
     }
+
+    function replace(s, r, v) {
+        for (var k in r) {
+            s = s.replace(r[k], (typeof v == 'object') ? v[k] : v);
+        }
+        return s;
+    }
+
     var methods = {
         init: function (options) {
             return this.each(function () {
                 var $e = $(this);
                 var settings = $.extend({}, defaults, options || {});
                 var $container = element($e, settings.container);
+
                 $e.data('mdmTabularInput', {settings: settings});
                 // add button
                 if (settings.btnAddSelector) {
@@ -111,8 +121,7 @@
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             var counter = settings.counter++;
-            var template = settings.template.replace(/_dkey_/g, counter)
-                .replace(/_dindex_/g, counter);
+            var template = replace(settings.template, settings.replaces, counter);
             var $row = $(template);
 
             var event = $.Event(events.beforeAdd);
@@ -122,7 +131,7 @@
                 $e.trigger(events.afterAdd, [$row]);
                 // add js
                 if (settings.templateJs) {
-                    var js = settings.templateJs.replace(/_dkey_/g, counter).replace(/_dindex_/g, counter);
+                    var js = replace(settings.templateJs, settings.replaces, counter);
                     eval(js);
                 }
                 // validation for active form
@@ -132,8 +141,7 @@
                     $.each(validations, function () {
                         var validation = this;
                         $.each(['id', 'name', 'container', 'input'], function () {
-                            validation[this] = validation[this].replace(/_dkey_/g, counter)
-                                .replace(/_dindex_/g, counter);
+                            validation[this] = replace(validation[this], settings.replaces, counter);
                         });
                         $form.yiiActiveForm('add', validation);
                     });
@@ -152,16 +160,18 @@
             var event = $.Event(events.beforeDelete);
             $e.trigger(event, [$row]);
             if (event.result !== false) {
-                var key = $row.data('key');
-                var index = $row.data('index');
+                var vals = {};
+                for (var k in settings.replaces) {
+                    vals[k] = $row.data(k);
+                }
                 $row.remove();
                 $e.trigger(events.afterDelete);
                 if (settings.formSelector && settings.validations && settings.validations.length) {
                     var $form = $(settings.formSelector);
                     $.each(settings.validations, function () {
                         if (this.id) {
-                            var id = this.id.replace(/_dkey_/g, key).replace(/_dindex_/g, index);
-                            $form.yiiActiveForm('remove', id);
+                            var sid = replace(this.id, settings.replaces, vals);
+                            $form.yiiActiveForm('remove', sid);
                         }
                     });
                 }

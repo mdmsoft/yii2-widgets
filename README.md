@@ -40,8 +40,9 @@ Usage
     TabularInput::widget([
         'id' => 'detail-grid',
         'allModels' => $model->items,
-        'modelClass' => OrderItem::className(),
-        'options' => ['tag' => 'tbody'],
+        'model' => OrderItem::className(),
+        'tag' => 'tbody',
+        'form' => $form,
         'itemOptions' => ['tag' => 'tr'],
         'itemView' => '_item_detail',
         'clientOptions' => [
@@ -54,8 +55,8 @@ Usage
 
 `_item_detail.php`
 ```php
-<td><?= Html::activeInputField($model,"[$key]product_id") ?></td>
-<td><?= Html::activeInputField($model,"[$key]qty") ?></td>
+<td><?= $form->field($model,"[$key]product_id")->textInput()->label(false); ?></td>
+<td><?= $form->field($model,"[$key]qty")->textInput()->label(false); ?></td>
 <td><a data-action="delete"><span glypicon glypicon-minus></span></a></td>
 ```
 

@@ -67,15 +67,16 @@ class DataColumn extends Column
      * Render input cell
      * @param Model $model model for cell
      * @param string $key
+     * @param integer $index
      * @return string
      */
-    public function renderInputCell($model, $key)
+    public function renderInputCell($model, $key, $index)
     {
         $form = $this->grid->form;
         $items = $this->items;
         if ($items !== null) {
             if ($items instanceof \Closure) {
-                $items = call_user_func($items, $model, $key);
+                $items = call_user_func($items, $model, $key, $index);
             }
             if ($form instanceof ActiveForm) {
                 return $form->field($model, "[$key]{$this->attribute}")

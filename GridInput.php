@@ -6,8 +6,7 @@ use Yii;
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\base\Model;
-use yii\helpers\Json;
-use yii\widgets\ActiveForm;
+use yii\base\InvalidConfigException;
 
 /**
  * Description of GridInput
@@ -15,16 +14,12 @@ use yii\widgets\ActiveForm;
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
  */
-class GridInput extends \yii\base\Widget
+class GridInput extends TabularWidget
 {
     /**
-     * @var Model[]
+     * @inheritdoc
      */
-    public $allModels = [];
-    /**
-     * @var Model
-     */
-    public $model;
+    public $tag = 'table';
     /**
      * @var Column[]
      */
@@ -42,11 +37,6 @@ class GridInput extends \yii\base\Widget
      *
      * @var array
      */
-    public $itemOptions = [];
-    /**
-     *
-     * @var array
-     */
     public $headerOptions = [];
     /**
      *
@@ -54,27 +44,19 @@ class GridInput extends \yii\base\Widget
      */
     public $defaultColumnClass = 'mdm\widgets\DataColumn';
     /**
-     *
-     * @var array
+     * @inheritdoc
      */
     public $options = ['class' => 'table table-striped'];
-    /**
-     *
-     * @var array
-     */
-    public $clientOptions = [];
-    /**
-     * @var ActiveForm
-     */
-    public $form;
 
     /**
      * @inheritdoc
      */
     public function init()
     {
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = $this->getId();
+        parent::init();
+        if (!($this->model instanceof Model)) {
+            $property = __CLASS__ . '::$model';
+            throw new InvalidConfigException("Value of \"{$property}\" must be specified.");
         }
         foreach ($this->columns as $i => $column) {
             if (is_string($column)) {
@@ -93,82 +75,17 @@ class GridInput extends \yii\base\Widget
 
             $this->columns[$i] = $column;
         }
-        if (!($this->model instanceof Model)) {
-            $this->model = Yii::createObject($this->model);
-        }
-        Html::addCssClass($this->itemOptions, 'mdm-tabular-item');
-    }
-
-    /**
-     * Register client option
-     */
-    public function registerClientOption()
-    {
-        $id = $this->options['id'];
-        $options = Json::htmlEncode($this->getClientOptions());
-        $view = $this->getView();
-        TabularAsset::register($view);
-        $view->registerJs("jQuery('#$id').mdmTabularInput($options);");
-    }
-
-    /**
-     * Get client option
-     * @return array
-     */
-    protected function getClientOptions()
-    {
-        $counter = count($this->allModels) ? max(array_keys($this->allModels)) + 1 : 0;
-        $clientOptions = $this->clientOptions;
-
-        $clientOptions['counter'] = $counter;
-        $clientOptions['container'] = 'tbody';
-
-        if (empty($clientOptions['itemSelector'])) {
-            $clientOptions['itemSelector'] = 'tr.mdm-tabular-item';
-        }
-        if ($this->form instanceof ActiveForm) {
-            $clientOptions['formSelector'] = '#' . $this->form->options['id'];
-        }
-
-        // template and js
-        $view = $this->getView();
-        $oldJs = $view->js;
-        $view->js = [];
-        if ($this->form instanceof ActiveForm) {
-            $offset = count($this->form->attributes);
-        }
-        $template = $this->renderItem($this->model, '_dkey_', '_dindex_');
-        if ($this->form instanceof ActiveForm) {
-            $clientOptions['validations'] = array_slice($this->form->attributes, $offset);
-        }
-        $js = [];
-        foreach ($view->js as $pieces) {
-            $js[] = implode("\n", $pieces);
-        }
-        if (count($js)) {
-            $clientOptions['templateJs'] = implode("\n", $js);
-        }
-        $view->js = $oldJs;
-        // ***
-        $clientOptions['template'] = $template;
-        return $clientOptions;
+        $this->containerOptions['tag'] = 'tbody';
+        $this->clientOptions = array_merge([
+            'container' => "tbody.mdm-container{$this->level}",
+            'itemSelector' => "tr.mdm-item{$this->level}"
+            ], $this->clientOptions);
+        Html::addCssClass($this->itemOptions, "mdm-item{$this->level}");
+        Html::addCssClass($this->containerOptions, "mdm-container{$this->level}");
     }
 
     /**
      * @inheritdoc
-     */
-    public function run()
-    {
-        $this->registerClientOption();
-        echo Html::beginTag('table', $this->options);
-        echo $this->renderHeader();
-        echo $this->renderBody();
-        echo '</table>';
-    }
-
-    /**
-     * Render header
-     * @return string
      */
     public function renderHeader()
     {
@@ -195,27 +112,9 @@ class GridInput extends \yii\base\Widget
     }
 
     /**
-     * Render header
-     * @return string
+     * @inheritdoc
      */
-    public function renderBody()
-    {
-        $rows = [];
-        $index = 0;
-        foreach ($this->allModels as $key => $model) {
-            $rows[] = $this->renderItem($model, $key, $index++);
-        }
-        return Html::tag('tbody', implode("\n", $rows));
-    }
-
-    /**
-     * Render item
-     * @param Model $model
-     * @param integer $key
-     * @param integer $index
-     * @return string
-     */
-    protected function renderItem($model, $key, $index)
+    public function renderItem($model, $key, $index)
     {
         $cols = [];
         /* @var $column Column */
