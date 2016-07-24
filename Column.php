@@ -30,6 +30,11 @@ class Column extends \yii\base\Object
     public $header;
     /**
      *
+     * @var string footer text
+     */
+    public $footer;
+    /**
+     *
      * @var array
      */
     public $headerOptions = [];
@@ -38,6 +43,11 @@ class Column extends \yii\base\Object
      * @var array
      */
     public $contentOptions = [];
+    /**
+     *
+     * @var array
+     */
+    public $footerOptions = [];
     /**
      * @var string
      */
@@ -50,6 +60,15 @@ class Column extends \yii\base\Object
     public function renderHeaderCell()
     {
         return Html::tag('th', $this->header, $this->headerOptions);
+    }
+
+    /**
+     * Render footer cell
+     * @return string
+     */
+    public function renderFooterCell()
+    {
+        return Html::tag('td', $this->footer, $this->footerOptions);
     }
 
     /**

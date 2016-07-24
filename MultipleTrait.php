@@ -2,6 +2,7 @@
 
 namespace mdm\widgets;
 
+use yii\base\Model;
 /**
  * Description of MultipleTrait
  *
@@ -24,15 +25,13 @@ trait MultipleTrait
      * If not set, it will use the sort name of called class.
      * @param Model[] $origin original models to be populated. It will be check using `$keys` with supplied data.
      * If same then will be used for result model.
-     * @param string|array $keys list of attribute to check is two model are equals. If `$keys` is `null`
-     * then it will use array index to check. If `$keys` is empty then always create new model.
      * @param array $options Option to model
      * - 'scenario' for model.
      * - 'arguments' The parameters to be passed to the class constructor as an array.
      * @return boolean|Model[] whether at least one of the models is successfully populated.
      */
-    public static function createMultiple($data, $formName = null, &$origin = [], $keys = null, $options = [])
+    public static function createMultiple($data, $formName = null, &$origin = [], $options = [])
     {
-        return ModelHelper::createMultiple(get_called_class(), $data, $formName, $origin, $keys, $options);
+        return ModelHelper::createMultiple(get_called_class(), $data, $formName, $origin, $options);
     }
 }

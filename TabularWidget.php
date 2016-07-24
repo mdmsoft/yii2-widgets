@@ -70,6 +70,11 @@ abstract class TabularWidget extends Widget
      */
     public $header;
     /**
+     * Footer
+     * @var string
+     */
+    public $footer;
+    /**
      * Part
      * @var array 
      */
@@ -158,6 +163,10 @@ abstract class TabularWidget extends Widget
         return Html::tag($tag, $content, $options);
     }
 
+    public function renderFooter()
+    {
+        return $this->footer;
+    }
     /**
      * Register script
      */

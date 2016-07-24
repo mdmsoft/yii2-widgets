@@ -20,29 +20,47 @@ class GridInput extends TabularWidget
      * @inheritdoc
      */
     public $tag = 'table';
+
     /**
      * @var Column[]
      */
     public $columns = [];
+
     /**
      * @var array
      */
     public $hiddens = [];
+
     /**
      *
      * @var string
      */
     public $header;
+
+    /**
+     *
+     * @var string
+     */
+    public $footer;
+
     /**
      *
      * @var array
      */
     public $headerOptions = [];
+
+    /**
+     *
+     * @var array
+     */
+    public $footerOptions = [];
+
     /**
      *
      * @var string
      */
     public $defaultColumnClass = 'mdm\widgets\DataColumn';
+
     /**
      * @inheritdoc
      */
@@ -103,9 +121,8 @@ class GridInput extends TabularWidget
             $rows = [Html::tag('tr', implode("\n", $cols), $this->headerOptions)];
         } else {
             $rows = [];
-            $colspan = count($this->columns);
             foreach ((array) $this->header as $header) {
-                $rows[] = Html::tag('th', "<th colspan=\"{$colspan}\">{$header}</th>>", $this->headerOptions);
+                $rows[] = Html::tag('tr', $header, $this->headerOptions);
             }
         }
         return Html::tag('thead', implode("\n", $rows));
@@ -141,5 +158,31 @@ class GridInput extends TabularWidget
         $options['data-key'] = (string) $key;
         $options['data-index'] = (string) $index;
         return Html::tag('tr', implode("\n", $cols), $options);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function renderFooter()
+    {
+        if ($this->footer === false) {
+            return '';
+        }
+        if ($this->footer === null) {
+            $cols = [];
+            foreach ($this->columns as $column) {
+                $cols[] = $column->renderFooterCell();
+            }
+            if (count($this->hiddens)) {
+                $cols[] = '<td style="display:none;" class"hidden-col"></td>';
+            }
+            $rows = [Html::tag('tr', implode("\n", $cols), $this->footerOptions)];
+        } else {
+            $rows = [];
+            foreach ((array) $this->footer as $footer) {
+                $rows[] = Html::tag('tr', $footer, $this->footerOptions);
+            }
+        }
+        return Html::tag('tfoot', implode("\n", $rows));
     }
 }

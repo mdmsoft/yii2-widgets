@@ -20,14 +20,29 @@ class DataColumn extends Column
      * @var string attribute
      */
     public $attribute;
+
     /**
      * @var array option for input
      */
     public $inputOptions = ['class' => 'form-control'];
+
     /**
      * @var array|\Closure
      */
     public $items;
+
+    /**
+     * @var string 
+     */
+    public $template = '{input} {error}';
+
+    /**
+     * @var string|array
+     * ```php
+     * 
+     * ```
+     */
+    public $widget;
 
     /**
      * @inheritdoc
@@ -74,20 +89,40 @@ class DataColumn extends Column
     {
         $form = $this->grid->form;
         $items = $this->items;
-        if ($items !== null) {
+        if ($this->widget !== null) {
+            if (is_array($this->widget)) {
+                list($widget, $options) = $this->widget;
+                if ($options instanceof \Closure) {
+                    $options = call_user_func($options, $model, $key, $index);
+                }
+            } else {
+                $widget = $this->widget;
+                $options = [];
+            }
+            if ($form instanceof ActiveForm) {
+                return $form->field($model, "[$key]{$this->attribute}", $this->template)
+                        ->widget($widget, $options);
+            } else {
+                $options = array_merge([
+                    'model' => $model,
+                    'attribute' => "[$key]{$this->attribute}"
+                    ], $options);
+                return $widget::widget($options);
+            }
+        } elseif ($items !== null) {
             if ($items instanceof \Closure) {
                 $items = call_user_func($items, $model, $key, $index);
             }
             if ($form instanceof ActiveForm) {
-                return $form->field($model, "[$key]{$this->attribute}")
-                        ->dropDownList($items, $this->inputOptions)->label(false);
+                return $form->field($model, "[$key]{$this->attribute}", $this->template)
+                        ->dropDownList($items, $this->inputOptions);
             } else {
                 return Html::activeDropDownList($model, "[$key]{$this->attribute}", $items, $this->inputOptions);
             }
         } else {
             if ($form instanceof ActiveForm) {
-                return $form->field($model, "[$key]{$this->attribute}")
-                        ->textInput($this->inputOptions)->label(false);
+                return $form->field($model, "[$key]{$this->attribute}", $this->template)
+                        ->textInput($this->inputOptions);
             }
             return Html::activeTextInput($model, "[$key]{$this->attribute}", $this->inputOptions);
         }
