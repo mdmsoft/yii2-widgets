@@ -100,7 +100,7 @@ class DataColumn extends Column
                 $options = [];
             }
             if ($form instanceof ActiveForm) {
-                return $form->field($model, "[$key]{$this->attribute}", $this->template)
+                return $form->field($model, "[$key]{$this->attribute}", ['template' => $this->template])
                         ->widget($widget, $options);
             } else {
                 $options = array_merge([
@@ -114,14 +114,14 @@ class DataColumn extends Column
                 $items = call_user_func($items, $model, $key, $index);
             }
             if ($form instanceof ActiveForm) {
-                return $form->field($model, "[$key]{$this->attribute}", $this->template)
+                return $form->field($model, "[$key]{$this->attribute}", ['template' => $this->template])
                         ->dropDownList($items, $this->inputOptions);
             } else {
                 return Html::activeDropDownList($model, "[$key]{$this->attribute}", $items, $this->inputOptions);
             }
         } else {
             if ($form instanceof ActiveForm) {
-                return $form->field($model, "[$key]{$this->attribute}", $this->template)
+                return $form->field($model, "[$key]{$this->attribute}", ['template' => $this->template])
                         ->textInput($this->inputOptions);
             }
             return Html::activeTextInput($model, "[$key]{$this->attribute}", $this->inputOptions);
