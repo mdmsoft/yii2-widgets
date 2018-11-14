@@ -4,6 +4,7 @@ namespace mdm\widgets;
 
 use yii\helpers\Html;
 use yii\helpers\Json;
+use yii\widgets\InputWidget;
 
 /**
  * Description of CropImage
@@ -11,11 +12,11 @@ use yii\helpers\Json;
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
  */
-class CropImage extends \yii\widgets\InputWidget
+class CropImage extends InputWidget
 {
     /**
      * @var array the HTML attributes for the input tag.
-     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     public $imgOptions = [];
 

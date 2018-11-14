@@ -3,13 +3,13 @@
 namespace mdm\widgets;
 
 use Yii;
-use yii\helpers\Json;
-use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
-use yii\base\Widget;
 use yii\base\InvalidConfigException;
-use yii\widgets\ActiveForm;
+use yii\base\Model;
+use yii\base\Widget;
+use yii\helpers\Html;
+use yii\helpers\Json;
 use yii\web\JsExpression;
+use yii\widgets\ActiveForm;
 
 /**
  * Description of TabularWidget
@@ -23,21 +23,21 @@ abstract class TabularWidget extends Widget
     /**
      * @var array the HTML attributes for the container tag of the list view.
      * The "tag" element specifies the tag name of the container element and defaults to "div".
-     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     public $options = [];
     /**
      * @var array the HTML attributes for the container of the rendering result of each data model.
      * The "tag" element specifies the tag name of the container element and defaults to "div".
      * If "tag" is false, it means no container element will be rendered.
-     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     public $itemOptions = [];
     /**
      * @var array the HTML attributes for the container of the rendering result of each data model.
      * The "tag" element specifies the tag name of the container element and defaults to "div".
      * If "tag" is false, it means no container element will be rendered.
-     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     * @see Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     public $containerOptions = [];
     /**
@@ -45,7 +45,7 @@ abstract class TabularWidget extends Widget
      */
     public $separator = "\n";
     /**
-     * @var \yii\base\Model[]|array
+     * @var Model[]|array
      */
     public $allModels = [];
     /**
@@ -112,9 +112,9 @@ abstract class TabularWidget extends Widget
      */
     public function run()
     {
-        if (!empty($this->containerOptions['tag']) && empty($this->containerOptions['container'])) {
+        if (!empty($this->containerOptions['tag']) && empty($this->clientOptions['container'])) {
             Html::addCssClass($this->containerOptions, 'mdm-container');
-            $this->containerOptions['container'] = "{$this->containerOptions['tag']}.mdm-container";
+            $this->clientOptions['container'] = "{$this->containerOptions['tag']}.mdm-container";
         }
         $this->registerClientScript();
 
