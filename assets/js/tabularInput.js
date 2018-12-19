@@ -60,6 +60,10 @@
         }
         return s;
     }
+    
+    function evaluateJs(str) {
+        eval(str);
+    }
 
     var methods = {
         init: function (options) {
@@ -117,7 +121,7 @@
             });
             $e.trigger(events.change);
         },
-        addRow: function () {
+        addRow: function (values) {
             var $e = $(this);
             var settings = $e.data('mdmTabularInput').settings;
             var counter = settings.counter++;
@@ -128,11 +132,19 @@
             $e.trigger(event, [$row]);
             if (event.result !== false) {
                 element($e, settings.container).append($row);
+                if (values) {
+                    $row.find(':input[data-field]').each(function (){
+                        var $input = $(this);
+                        var field = $input.data('field');
+                        if (values[field] !== undefined) {
+                            $input.val(values[field]);
+                        }
+                    });
+                }                
                 $e.trigger(events.afterAdd, [$row]);
                 // add js
                 if (settings.templateJs) {
-                    var js = replace(settings.templateJs, settings.replaces, counter);
-                    eval(js);
+                    evaluateJs(replace(settings.templateJs, settings.replaces, counter));
                 }
                 // validation for active form
                 if (settings.formSelector && settings.validations && settings.validations.length) {
