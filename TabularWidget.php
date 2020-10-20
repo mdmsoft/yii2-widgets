@@ -209,6 +209,7 @@ abstract class TabularWidget extends Widget
             $this->form->attributes = $oldAttrs;
         }
         $js = [];
+        ksort($view->js);
         foreach ($view->js as $pieces) {
             $js[] = implode("\n", $pieces);
         }
