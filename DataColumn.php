@@ -2,9 +2,9 @@
 
 namespace mdm\widgets;
 
-use Yii;
-use yii\helpers\Html;
+use Closure;
 use yii\base\Model;
+use yii\helpers\Html;
 use yii\helpers\Inflector;
 use yii\widgets\ActiveForm;
 
@@ -27,7 +27,7 @@ class DataColumn extends Column
     public $inputOptions = ['class' => 'form-control'];
 
     /**
-     * @var array|\Closure
+     * @var array|Closure
      */
     public $items;
 
@@ -43,6 +43,12 @@ class DataColumn extends Column
      * ```
      */
     public $widget;
+
+    /**
+     *
+     * @var string
+     */
+    public $type = 'text';
 
     /**
      * @inheritdoc
@@ -92,7 +98,7 @@ class DataColumn extends Column
         if ($this->widget !== null) {
             if (is_array($this->widget)) {
                 list($widget, $options) = $this->widget;
-                if ($options instanceof \Closure) {
+                if ($options instanceof Closure) {
                     $options = call_user_func($options, $model, $key, $index);
                 }
             } else {
@@ -110,21 +116,48 @@ class DataColumn extends Column
                 return $widget::widget($options);
             }
         } elseif ($items !== null) {
-            if ($items instanceof \Closure) {
+            if ($items instanceof Closure) {
                 $items = call_user_func($items, $model, $key, $index);
             }
-            if ($form instanceof ActiveForm) {
-                return $form->field($model, "[$key]{$this->attribute}", ['template' => $this->template])
-                        ->dropDownList($items, $this->inputOptions);
-            } else {
-                return Html::activeDropDownList($model, "[$key]{$this->attribute}", $items, $this->inputOptions);
+            switch ($this->type) {
+                case 'checkbox':
+                    if ($form instanceof ActiveForm) {
+                        return $form->field($model, "[$key]{$this->attribute}", ['template' => $this->template])
+                                ->checkboxList($items, $this->inputOptions);
+                    } else {
+                        return Html::activeCheckboxList($model, "[$key]{$this->attribute}", $items, $this->inputOptions);
+                    }
+                    break;
+
+                default:
+                    if ($form instanceof ActiveForm) {
+                        return $form->field($model, "[$key]{$this->attribute}", ['template' => $this->template])
+                                ->dropDownList($items, $this->inputOptions);
+                    } else {
+                        return Html::activeDropDownList($model, "[$key]{$this->attribute}", $items, $this->inputOptions);
+                    }
+                    break;
             }
         } else {
-            if ($form instanceof ActiveForm) {
-                return $form->field($model, "[$key]{$this->attribute}", ['template' => $this->template])
-                        ->textInput($this->inputOptions);
+            switch ($this->type) {
+                case 'checkbox':
+                    if ($form instanceof ActiveForm) {
+                        return $form->field($model, "[$key]{$this->attribute}", ['template' => $this->template])
+                                ->checkbox($this->inputOptions, false);
+                    } else {
+                        return Html::activeCheckbox($model, "[$key]{$this->attribute}", $this->inputOptions);
+                    }
+                    break;
+
+                default:
+                    if ($form instanceof ActiveForm) {
+                        return $form->field($model, "[$key]{$this->attribute}", ['template' => $this->template])
+                                ->textInput($this->inputOptions);
+                    } else {
+                        return Html::activeTextInput($model, "[$key]{$this->attribute}", $this->inputOptions);
+                    }
+                    break;
             }
-            return Html::activeTextInput($model, "[$key]{$this->attribute}", $this->inputOptions);
         }
     }
 

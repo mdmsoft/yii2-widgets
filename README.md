@@ -78,6 +78,10 @@ Usage
                     2 => 'Dozen'
                 ]
             ],
+            [
+                'attribute' => 'tax',
+                'type' => 'checkbox',
+            ],
             ['class' => 'mdm\widgets\ButtonColumn']
         ],
     ]);
